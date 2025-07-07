@@ -1,0 +1,101 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["dral"]
+
+[project]
+name = "dral-model"
+homepage = "https://github.com/gembcior/d-ral-model-python"
+version = "0.1.0"
+description = "Python model for D-RAL project"
+authors = [
+  {name="Gembcior", email= "gembcior@gmail.com"}
+]
+license = "MIT"
+readme = "README.md"
+
+requires-python = ">=3.10"
+dependencies = [
+  "rich~=14.0",
+  "click~=8.2",
+]
+
+[dependency-groups]
+dev = [
+  "pytest~=7.1",
+  "pytest-sugar~=0.9",
+  "pytest-cov~=3.0",
+  "pytest-clarity~=1.0",
+  "mypy~=0.971",
+]
+
+[tool.mypy]
+files = ["duck"]
+show_error_codes = true
+strict = true
+enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
+
+[[tool.mypy.overrides]]
+module = ["rich.*", "click.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".ipynb_checkpoints",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pyenv",
+    ".pytest_cache",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    ".vscode",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "site-packages",
+    "venv",
+]
+line-length = 140
+indent-width = 4
+target-version = "py310"
+
+[tool.ruff.lint]
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+select = [
+    # pycodestyle
+    "E",
+    # Pyflakes
+    "F",
+    # pyupgrade
+    "UP",
+    # flake8-bugbear
+    "B",
+    # flake8-simplify
+    "SIM",
+    # isort
+    "I",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"

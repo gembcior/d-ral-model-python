@@ -1,0 +1,14 @@
+**/*.egg-info
+**.pyc
+**/.eggs
+**/venv
+**/__pycache__
+/dist
+.coverage
+**/dralOutput
+**/.tox
+**/.mypy_cache
+**/.pytest_cache
+.venv
+venv
+**/.ruff_cache
