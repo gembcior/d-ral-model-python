@@ -18,17 +18,16 @@ readme = "README.md"
 
 requires-python = ">=3.10"
 dependencies = [
-  "rich~=14.0",
-  "click~=8.2",
 ]
 
 [dependency-groups]
 dev = [
-  "pytest~=7.1",
-  "pytest-sugar~=0.9",
-  "pytest-cov~=3.0",
+  "pytest~=8.2",
+  "pytest-sugar~=1.0",
+  "pytest-cov~=5.0",
   "pytest-clarity~=1.0",
-  "mypy~=0.971",
+  "mypy~=1.10",
+  "rich~=14.0",
 ]
 
 [tool.mypy]

@@ -30,8 +30,8 @@ This is an auto generated file. Do not modify!
 import dral
 
 
-@dral.group("Alfa", 0x20000000, 0x00000000, 1)
-class AlfaGroup(dral.Group):
+@dral.group("DeltaX", 0x20030000, 0x00001000, 2)
+class DeltaXGroup(dral.Group):
     @dral.register("Apple", 0x00000000, dral.AccessType.ReadWrite)
     class AppleRegister(dral.Register):
         dpField = dral.Field("Dp", 0, 1)

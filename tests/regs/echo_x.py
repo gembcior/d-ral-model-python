@@ -30,18 +30,21 @@ This is an auto generated file. Do not modify!
 import dral
 
 
-@dral.group("Alfa", 0x20000000, 0x00000000, 1)
-class AlfaGroup(dral.Group):
-    @dral.register("Apple", 0x00000000, dral.AccessType.ReadWrite)
-    class AppleRegister(dral.Register):
-        dpField = dral.Field("Dp", 0, 1)
-        hdmiField = dral.Field("Hdmi", 2, 4)
-        usbField = dral.Field("Usb", 15, 16)
+@dral.group("EchoX", 0x20040000, 0x00001000, 2)
+class EchoXGroup(dral.Group):
+    @dral.register("Albatross", 0x00000000, dral.AccessType.ReadWrite)
+    class AlbatrossRegister(dral.Register):
+        kvmField = dral.Field("Kvm", 1, 13)
+        ecdsaField = dral.Field("Ecdsa", 31, 1)
 
-    @dral.register("Banana", 0x00000020, dral.AccessType.ReadWrite)
-    class BananaRegister(dral.Register):
-        hdcpField = dral.Field("Hdcp", 0, 10)
-        aesField = dral.Field("Aes", 20, 5)
+    @dral.group("BearX", 0x00000020, 0x00000020, 3)
+    class BearXGroup(dral.Group):
+        @dral.register("Bear", 0x00000000, dral.AccessType.ReadWrite)
+        class BearRegister(dral.Register):
+            tcpField = dral.Field("Tcp", 0, 9)
+            udpField = dral.Field("Udp", 10, 9)
 
-    appleRegister = AppleRegister()
-    bananaRegister = BananaRegister()
+        bearRegister = BearRegister()
+
+    albatrossRegister = AlbatrossRegister()
+    bearXGroup = BearXGroup()

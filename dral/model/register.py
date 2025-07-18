@@ -97,6 +97,7 @@ def _deepcopy(self: RegisterInstanceType, memo) -> RegisterInstanceType:
 
 def _setup_init(cls: RegisterType, name: str, address: int, access: AccessType) -> RegisterType:
     init = getattr(cls, "__init__", None)
+    fields = getmembers(cls, lambda x: isinstance(x, Field))
 
     def __init__(self):
         if init is not None:
@@ -104,6 +105,8 @@ def _setup_init(cls: RegisterType, name: str, address: int, access: AccessType) 
         self._name = name
         self._address = address
         self._access = access
+        for attr, value in fields:
+            setattr(self, attr, deepcopy(value))
 
     cls.__init__ = __init__  # type: ignore[method-assign]
     return cast(RegisterType, cls)

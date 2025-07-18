@@ -11,6 +11,14 @@ GroupInstanceType = TypeVar("GroupInstanceType", bound="Group")
 GroupType = TypeVar("GroupType", bound=type)
 
 
+def is_instance_attr(obj, attr):
+    return attr in obj.__dict__
+
+
+def is_class_attr(obj, attr):
+    return attr in type(obj).__dict__
+
+
 class Group:
     def __init__(self) -> None:
         self._name: str = ""
@@ -80,12 +88,19 @@ def _setup_groups(cls: GroupType, size: int) -> GroupType:
 def _setup_init(cls: GroupType, name: str, address: int, offset: list[int], size: int) -> GroupType:
     init = getattr(cls, "__init__", None)
 
+    registers = getmembers(cls, lambda x: isinstance(x, list | tuple) and all(isinstance(y, Register) for y in x))
+    groups = getmembers(cls, lambda x: isinstance(x, list | tuple) and all(isinstance(y, Group) for y in x))
+
     def __init__(self):
         if init is not None:
             init(self)
         self._name = name
         self._offset = offset
         self._size = size
+        for attr, value in registers:
+            setattr(self, attr, tuple(deepcopy(x) for x in value))
+        for attr, value in groups:
+            setattr(self, attr, tuple(deepcopy(x) for x in value))
         self._update_address(address, offset)
 
     cls.__init__ = __init__  # type: ignore[method-assign]
