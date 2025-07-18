@@ -3,14 +3,14 @@ from __future__ import annotations
 from collections.abc import Callable
 from copy import copy, deepcopy
 from inspect import getmembers
-from typing import TypeVar, cast
+from typing import Any, TypeVar
 
 from .access import AccessType
 from .field import Field
 
 
 class Register:
-    def __init__(self):
+    def __init__(self) -> None:
         self._name: str = ""
         self._address: int = 0
         self._access: AccessType = AccessType.ReadWrite
@@ -18,8 +18,8 @@ class Register:
         self._fields: tuple[Field, ...] = self._get_all_fields()
 
     def _get_all_fields(self) -> tuple[Field, ...]:
-        fields = getmembers(self, lambda x: isinstance(x, Field))
-        fields = [x[1] for x in fields if x[0].startswith("_")]
+        field_members = getmembers(self, lambda x: isinstance(x, Field))
+        fields = [x[1] for x in field_members if x[0].startswith("_")]
         return tuple(sorted(fields, key=lambda x: x.position))
 
     def __str__(self) -> str:
@@ -72,18 +72,18 @@ def _setup_fields(cls: RegisterType) -> RegisterType:
 
     for attr, _ in fields.items():
 
-        def getter(self, attr=attr):
+        def getter(self: RegisterType, attr: str = attr) -> Any:
             return getattr(self, f"_{attr}")
 
-        def setter(self, value, attr=attr):
+        def setter(self: RegisterType, value: Any, attr: str = attr) -> None:
             raise AttributeError(f"Cannot set value directly on {attr}. Use {attr}.value = <value> instead.")
 
         setattr(cls, attr, property(getter, setter))
 
-    return cast(RegisterType, cls)
+    return cls
 
 
-def _deepcopy(self: RegisterInstanceType, memo) -> RegisterInstanceType:
+def _deepcopy(self: RegisterInstanceType, memo: dict[int, Any]) -> RegisterInstanceType:
     instance = copy(self)
     memo[id(self)] = instance
     fields = getmembers(instance, lambda x: isinstance(x, Field))
@@ -92,29 +92,29 @@ def _deepcopy(self: RegisterInstanceType, memo) -> RegisterInstanceType:
         new = deepcopy(field[1], memo)
         setattr(instance, field[0], new)
     instance._fields = instance._get_all_fields()
-    return cast(RegisterInstanceType, instance)
+    return instance
 
 
 def _setup_init(cls: RegisterType, name: str, address: int, access: AccessType) -> RegisterType:
     init = getattr(cls, "__init__", None)
     fields = getmembers(cls, lambda x: isinstance(x, Field))
 
-    def __init__(self):
+    def __init__(self: RegisterType) -> None:
         if init is not None:
             init(self)
-        self._name = name
-        self._address = address
-        self._access = access
+        self._name = name  # type: ignore[attr-defined]
+        self._address = address  # type: ignore[attr-defined]
+        self._access = access  # type: ignore[attr-defined]
         for attr, value in fields:
             setattr(self, attr, deepcopy(value))
 
-    cls.__init__ = __init__  # type: ignore[method-assign]
-    return cast(RegisterType, cls)
+    cls.__init__ = __init__  # type: ignore[misc]
+    return cls
 
 
 def _setup_methods(cls: RegisterType) -> RegisterType:
-    cls.__deepcopy__ = _deepcopy  # type: ignore[method-assign]
-    return cast(RegisterType, cls)
+    cls.__deepcopy__ = _deepcopy  # type: ignore[attr-defined]
+    return cls
 
 
 def register(name: str, address: int, access: AccessType = AccessType.ReadWrite) -> Callable[[RegisterType], RegisterType]:
@@ -123,6 +123,6 @@ def register(name: str, address: int, access: AccessType = AccessType.ReadWrite)
         cls = _setup_fields(cls)
         cls = _setup_init(cls, name, address, access)
 
-        return cast(RegisterType, cls)
+        return cls
 
     return decorator

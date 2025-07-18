@@ -15,6 +15,14 @@ authors = [
 ]
 license = "MIT"
 readme = "README.md"
+classifiers = [
+  "License :: OSI Approved :: MIT License",
+  "Environment :: Console",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+]
 
 requires-python = ">=3.10"
 dependencies = [
@@ -28,6 +36,7 @@ dev = [
   "pytest-clarity~=1.0",
   "mypy~=1.10",
   "rich~=14.0",
+  "ruff~=0.12",
 ]
 
 [tool.mypy]

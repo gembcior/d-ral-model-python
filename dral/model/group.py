@@ -3,20 +3,12 @@ from __future__ import annotations
 from collections.abc import Callable
 from copy import copy, deepcopy
 from inspect import getmembers
-from typing import TypeVar, cast
+from typing import Any, TypeVar
 
 from .register import Register
 
 GroupInstanceType = TypeVar("GroupInstanceType", bound="Group")
 GroupType = TypeVar("GroupType", bound=type)
-
-
-def is_instance_attr(obj, attr):
-    return attr in obj.__dict__
-
-
-def is_class_attr(obj, attr):
-    return attr in type(obj).__dict__
 
 
 class Group:
@@ -41,7 +33,7 @@ class Group:
         if index >= len(self):
             raise IndexError(f"Index {index} out of range for group {self._name}")
         self._index = index
-        return cast(GroupInstanceType, self)
+        return self
 
     @property
     def name(self) -> str:
@@ -64,17 +56,17 @@ def _setup_children(cls: GroupType, size: int, children_type: type) -> GroupType
 
     for attr, _ in children.items():
 
-        def getter(self, attr=attr):
-            child = getattr(self, f"_{attr}")[self._index]
-            self._index = 0
+        def getter(self: GroupType, attr: str = attr) -> Any:
+            child = getattr(self, f"_{attr}")[self._index]  # type: ignore[attr-defined]
+            self._index = 0  # type: ignore[attr-defined]
             return child
 
-        def setter(self, value, attr=attr):
+        def setter(self: GroupType, value: Any, attr: str = attr) -> None:
             raise AttributeError(f"Cannot set value directly on {attr}. Use {attr}.value = <value> instead.")
 
         setattr(cls, attr, property(getter, setter))
 
-    return cast(GroupType, cls)
+    return cls
 
 
 def _setup_registers(cls: GroupType, size: int) -> GroupType:
@@ -91,23 +83,23 @@ def _setup_init(cls: GroupType, name: str, address: int, offset: list[int], size
     registers = getmembers(cls, lambda x: isinstance(x, list | tuple) and all(isinstance(y, Register) for y in x))
     groups = getmembers(cls, lambda x: isinstance(x, list | tuple) and all(isinstance(y, Group) for y in x))
 
-    def __init__(self):
+    def __init__(self: GroupType) -> None:
         if init is not None:
             init(self)
-        self._name = name
-        self._offset = offset
-        self._size = size
+        self._name = name  # type: ignore[attr-defined]
+        self._offset = offset  # type: ignore[attr-defined]
+        self._size = size  # type: ignore[attr-defined]
         for attr, value in registers:
             setattr(self, attr, tuple(deepcopy(x) for x in value))
         for attr, value in groups:
             setattr(self, attr, tuple(deepcopy(x) for x in value))
-        self._update_address(address, offset)
+        self._update_address(address, offset)  # type: ignore[attr-defined]
 
-    cls.__init__ = __init__  # type: ignore[method-assign]
-    return cast(GroupType, cls)
+    cls.__init__ = __init__  # type: ignore[misc]
+    return cls
 
 
-def _deepcopy(self: GroupInstanceType, memo) -> GroupInstanceType:
+def _deepcopy(self: GroupInstanceType, memo: dict[int, Any]) -> GroupInstanceType:
     instance = copy(self)
     memo[id(self)] = instance
     registers = getmembers(instance, lambda x: isinstance(x, list | tuple) and all(isinstance(y, Register) for y in x))
@@ -118,7 +110,7 @@ def _deepcopy(self: GroupInstanceType, memo) -> GroupInstanceType:
     for group in groups:
         new = tuple(deepcopy(x, memo) for x in group[1])
         setattr(instance, group[0], new)
-    return cast(GroupInstanceType, instance)
+    return instance
 
 
 def _update_address(self: GroupInstanceType, address: int, offset: list[int] | None = None) -> GroupInstanceType:
@@ -135,13 +127,13 @@ def _update_address(self: GroupInstanceType, address: int, offset: list[int] | N
             offset2add = offset[j] if offset is not None else 0
             groups[i][1][j]._update_address(address + offset2add)
 
-    return cast(GroupInstanceType, self)
+    return self
 
 
 def _setup_methods(cls: GroupType) -> GroupType:
-    cls.__deepcopy__ = _deepcopy  # type: ignore[method-assign]
-    cls._update_address = _update_address  # type: ignore[method-assign]
-    return cast(GroupType, cls)
+    cls.__deepcopy__ = _deepcopy  # type: ignore[attr-defined]
+    cls._update_address = _update_address  # type: ignore[attr-defined]
+    return cls
 
 
 def group(name: str, address: int, offset: list[int] | int, size: int = 1) -> Callable[[GroupType], GroupType]:
@@ -159,6 +151,6 @@ def group(name: str, address: int, offset: list[int] | int, size: int = 1) -> Ca
         cls = _setup_groups(cls, size)
         cls = _setup_init(cls, name, address, offset, size)
 
-        return cast(GroupType, cls)
+        return cls
 
     return decorator
