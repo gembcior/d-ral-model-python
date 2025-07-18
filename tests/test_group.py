@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from copy import copy, deepcopy
+from inspect import getmembers
 from itertools import product
 
 import pytest
@@ -8,6 +10,8 @@ from regs.bravo import BravoGroup
 from regs.charlie import CharlieGroup
 from regs.delta_x import DeltaXGroup
 from regs.echo_x import EchoXGroup
+
+import dral.model as dral
 
 
 class TestGroup:
@@ -39,7 +43,7 @@ class TestGroup:
                 )
 
     @pytest.mark.parametrize("group", [AlfaGroup, BravoGroup, CharlieGroup, DeltaXGroup, EchoXGroup])
-    def test_group_attributes_access(self, group):
+    def test_group_attributes_overwrite(self, group):
         instance = group()
         with pytest.raises(AttributeError):
             instance.name = "NewName"  # type: ignore
@@ -48,7 +52,7 @@ class TestGroup:
         with pytest.raises(AttributeError):
             instance.offset = [0x1000, 0x2000]  # type: ignore
 
-    def test_nested_group_attributes_access(self):
+    def test_nested_group_attributes_overwrite(self):
         echo_group = EchoXGroup()
         with pytest.raises(AttributeError):
             echo_group.bearXGroup[0].name = "NewBearName"  # type: ignore
@@ -56,3 +60,36 @@ class TestGroup:
             echo_group.bearXGroup[0].address = 0x1000000  # type: ignore
         with pytest.raises(AttributeError):
             echo_group.bearXGroup[0].offset = [0x1000, 0x2000]  # type: ignore
+
+    @pytest.mark.parametrize("group", [AlfaGroup, BravoGroup, CharlieGroup, DeltaXGroup, EchoXGroup])
+    def test_group_children_overwrite(self, group):
+        instance = group()
+        registers = getmembers(instance, lambda x: isinstance(x, dral.Register))
+        for attr, value in registers:
+            with pytest.raises(AttributeError):
+                setattr(instance, attr, copy(value))
+        groups = getmembers(instance, lambda x: isinstance(x, dral.Group))
+        for attr, value in groups:
+            with pytest.raises(AttributeError):
+                setattr(instance, attr, copy(value))
+
+    @pytest.mark.parametrize("group", [AlfaGroup, BravoGroup, CharlieGroup, DeltaXGroup, EchoXGroup])
+    def test_group_deepcopy(self, group):
+        instance = group()
+        copied_instance = deepcopy(instance)
+        assert instance.name == copied_instance.name, f"Name mismatch: {instance.name} != {copied_instance.name}"
+        assert instance.address == copied_instance.address, f"Address mismatch: {instance.address:#010x} != {copied_instance.address:#010x}"
+        assert instance.offset == copied_instance.offset, f"Offset mismatch: {instance.offset} != {copied_instance.offset}"
+
+        for attr, value in getmembers(instance, lambda x: isinstance(x, dral.Register)):
+            copied_value = getattr(copied_instance, attr)
+            assert value != copied_value, f"Original and copied registers should not be the same object: {value} != {copied_value}"
+            assert value.name == copied_value.name, f"Name mismatch: {value.name} != {copied_value.name}"
+            assert value.address == copied_value.address, f"Address mismatch: {value.address:#010x} != {copied_value.address:#010x}"
+            assert value.access == copied_value.access, f"Access type mismatch: {value.access} != {copied_value.access}"
+
+        for attr, value in getmembers(instance, lambda x: isinstance(x, dral.Group)):
+            copied_value = getattr(copied_instance, attr)
+            assert value != copied_value, f"Original and copied groups should not be the same object: {value} != {copied_value}"
+            assert value.name == copied_value.name, f"Name mismatch: {value.name} != {copied_value.name}"
+            assert value.address == copied_value.address, f"Address mismatch: {value.address:#010x} != {copied_value.address:#010x}"

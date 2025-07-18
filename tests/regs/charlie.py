@@ -27,7 +27,7 @@ SOFTWARE.
 This is an auto generated file. Do not modify!
 """
 
-import dral
+import dral.model as dral
 
 
 @dral.group("Charlie", 0x20020000, 0x00000000, 1)

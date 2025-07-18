@@ -27,7 +27,7 @@ SOFTWARE.
 This is an auto generated file. Do not modify!
 """
 
-import dral
+import dral.model as dral
 
 
 @dral.group("EchoX", 0x20040000, 0x00001000, 2)
