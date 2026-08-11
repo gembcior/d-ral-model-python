@@ -30,6 +30,29 @@ class TestGroup:
         for i, address in enumerate(expected_address):
             assert instance[i].address == address, f"Address mismatch for {instance[i].name}: expected {address:#010x}, got {instance[i].address:#010x}"
 
+    def test_indexed_group_reference_stays_sticky_across_repeated_access(self):
+        # Regression: group[i] used to mutate a shared _index and reset it to 0
+        # after the first attribute read, so a stored `sel = group[i]` silently
+        # drifted back to index 0 on the second access.
+        group = EchoXGroup()
+        sel = group[1]
+        first = sel.bearXGroup[0].address
+        second = sel.bearXGroup[0].address
+        assert first == second == 0x20041020
+        assert sel.bearXGroup[1].address == 0x20041040
+        # The un-indexed original must be unaffected and still default to index 0.
+        assert group[0].bearXGroup[0].address == 0x20040020
+
+    def test_indexed_group_register_value_is_isolated_per_slot(self):
+        # Each array slot must own a real, independent Register instance -
+        # writing through one indexed path must not leak into a sibling slot.
+        sel = EchoXGroup()[1]
+        sel.bearXGroup[0].bearRegister.value = 0xAA
+        sel.bearXGroup[1].bearRegister.value = 0xBB
+        assert sel.bearXGroup[0].bearRegister.value == 0xAA
+        assert sel.bearXGroup[1].bearRegister.value == 0xBB
+        assert EchoXGroup()[0].bearXGroup[0].bearRegister.value == 0x00
+
     def test_nested_group_address_calculation(self):
         echo_groups = (EchoXGroup(), EchoXGroup(), EchoXGroup())
         for i, group in enumerate(echo_groups):

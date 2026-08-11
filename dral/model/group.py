@@ -32,8 +32,13 @@ class Group:
             raise IndexError("Index must be a non-negative integer")
         if index >= len(self):
             raise IndexError(f"Index {index} out of range for group {self._name}")
-        self._index = index
-        return self
+        # Return a shallow copy carrying its own index instead of mutating self.
+        # Mutating self here would make repeated attribute access through a
+        # stored `group[i]` reference silently drift back to index 0 (the
+        # child getter below resets it after the first read).
+        instance = copy(self)
+        instance._index = index
+        return instance
 
     @property
     def name(self) -> str:
@@ -57,9 +62,7 @@ def _setup_children(cls: GroupType, size: int, children_type: type) -> GroupType
     for attr, _ in children.items():
 
         def getter(self: GroupType, attr: str = attr) -> Any:  # noqa: ANN401
-            child = getattr(self, f"_{attr}")[self._index]  # type: ignore[attr-defined]
-            self._index = 0  # type: ignore[attr-defined]
-            return child
+            return getattr(self, f"_{attr}")[self._index]  # type: ignore[attr-defined]
 
         def setter(self: GroupType, value: Any, attr: str = attr) -> None:  # noqa: ANN401
             raise AttributeError(f"Cannot set value directly on {attr}. Use {attr}.value = <value> instead.")
