@@ -56,12 +56,12 @@ def _setup_children(cls: GroupType, size: int, children_type: type) -> GroupType
 
     for attr, _ in children.items():
 
-        def getter(self: GroupType, attr: str = attr) -> Any:
+        def getter(self: GroupType, attr: str = attr) -> Any:  # noqa: ANN401
             child = getattr(self, f"_{attr}")[self._index]  # type: ignore[attr-defined]
             self._index = 0  # type: ignore[attr-defined]
             return child
 
-        def setter(self: GroupType, value: Any, attr: str = attr) -> None:
+        def setter(self: GroupType, value: Any, attr: str = attr) -> None:  # noqa: ANN401
             raise AttributeError(f"Cannot set value directly on {attr}. Use {attr}.value = <value> instead.")
 
         setattr(cls, attr, property(getter, setter))
@@ -83,7 +83,7 @@ def _setup_init(cls: GroupType, name: str, address: int, offset: list[int], size
     registers = getmembers(cls, lambda x: isinstance(x, list | tuple) and all(isinstance(y, Register) for y in x))
     groups = getmembers(cls, lambda x: isinstance(x, list | tuple) and all(isinstance(y, Group) for y in x))
 
-    def __init__(self: GroupType) -> None:
+    def __init__(self: GroupType) -> None:  # noqa: N807
         if init is not None:
             init(self)
         self._name = name  # type: ignore[attr-defined]
@@ -122,10 +122,10 @@ def _update_address(self: GroupInstanceType, address: int, offset: list[int] | N
             registers[i][1][j]._address = address + instance._address + offset2add
 
     groups = getmembers(self, lambda x: isinstance(x, list | tuple) and all(isinstance(y, Group) for y in x))
-    for i, group in enumerate(groups):
+    for _i, group in enumerate(groups):
         for j, _ in enumerate(group[1]):
             offset2add = offset[j] if offset is not None else 0
-            groups[i][1][j]._update_address(address + offset2add)
+            group[1][j]._update_address(address + offset2add)
 
     return self
 

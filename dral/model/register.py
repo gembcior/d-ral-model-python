@@ -72,10 +72,10 @@ def _setup_fields(cls: RegisterType) -> RegisterType:
 
     for attr, _ in fields.items():
 
-        def getter(self: RegisterType, attr: str = attr) -> Any:
+        def getter(self: RegisterType, attr: str = attr) -> Any:  # noqa: ANN401
             return getattr(self, f"_{attr}")
 
-        def setter(self: RegisterType, value: Any, attr: str = attr) -> None:
+        def setter(self: RegisterType, value: Any, attr: str = attr) -> None:  # noqa: ANN401
             raise AttributeError(f"Cannot set value directly on {attr}. Use {attr}.value = <value> instead.")
 
         setattr(cls, attr, property(getter, setter))
@@ -99,7 +99,7 @@ def _setup_init(cls: RegisterType, name: str, address: int, access: AccessType) 
     init = getattr(cls, "__init__", None)
     fields = getmembers(cls, lambda x: isinstance(x, Field))
 
-    def __init__(self: RegisterType) -> None:
+    def __init__(self: RegisterType) -> None:  # noqa: N807
         if init is not None:
             init(self)
         self._name = name  # type: ignore[attr-defined]

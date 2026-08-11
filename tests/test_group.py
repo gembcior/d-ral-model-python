@@ -28,9 +28,7 @@ class TestGroup:
     def test_group_address_calculation(self, group, expected_address):
         instance = group()
         for i, address in enumerate(expected_address):
-            assert instance[i].address == address, (
-                f"Address mismatch for {instance[i].name}: expected {address:#010x}, got {instance[i].address:#010x}"
-            )
+            assert instance[i].address == address, f"Address mismatch for {instance[i].name}: expected {address:#010x}, got {instance[i].address:#010x}"
 
     def test_nested_group_address_calculation(self):
         echo_groups = (EchoXGroup(), EchoXGroup(), EchoXGroup())
@@ -38,9 +36,7 @@ class TestGroup:
             for echo_idx, bear_idx in product(range(len(group)), range(len(group.bearXGroup))):
                 expected_address = 0x20040020 + (bear_idx * 0x20) + (echo_idx * 0x1000)
                 actual_address = group[echo_idx].bearXGroup[bear_idx].address
-                assert actual_address == expected_address, (
-                    f"EchoGroup[{i}]: Expected address {expected_address:#010x}, got {actual_address:#010x}"
-                )
+                assert actual_address == expected_address, f"EchoGroup[{i}]: Expected address {expected_address:#010x}, got {actual_address:#010x}"
 
     @pytest.mark.parametrize("group", [AlfaGroup, BravoGroup, CharlieGroup, DeltaXGroup, EchoXGroup])
     def test_group_attributes_overwrite(self, group):
