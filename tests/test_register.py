@@ -120,6 +120,18 @@ class TestRegister:
             with pytest.raises(AttributeError):
                 setattr(alfa.appleRegister, attr, copy(value))
 
+    def test_register_description_default_and_passthrough(self):
+        @dral.register("NoDescription", 0x0)
+        class NoDescriptionRegister(dral.Register):
+            pass
+
+        @dral.register("Apple", 0x0, description="Apple Register")
+        class AppleRegister(dral.Register):
+            pass
+
+        assert NoDescriptionRegister().description == ""
+        assert AppleRegister().description == "Apple Register"
+
     def test_register_value_set_get(self):
         alfa = AlfaGroup()
         bravo = BravoGroup()

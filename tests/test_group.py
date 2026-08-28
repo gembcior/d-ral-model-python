@@ -87,6 +87,18 @@ class TestGroup:
                 actual_address = group[echo_idx].bearXGroup[bear_idx].address
                 assert actual_address == expected_address, f"EchoGroup[{i}]: Expected address {expected_address:#010x}, got {actual_address:#010x}"
 
+    def test_group_description_default_and_passthrough(self):
+        @dral.group("NoDescription", 0x0, 0x0, 1)
+        class NoDescriptionGroup(dral.Group):
+            pass
+
+        @dral.group("Alfa", 0x0, 0x0, 1, description="Alfa Peripheral")
+        class AlfaDescribedGroup(dral.Group):
+            pass
+
+        assert NoDescriptionGroup().description == ""
+        assert AlfaDescribedGroup().description == "Alfa Peripheral"
+
     @pytest.mark.parametrize("group", [AlfaGroup, BravoGroup, CharlieGroup, DeltaXGroup, EchoXGroup])
     def test_group_attributes_overwrite(self, group):
         instance = group()

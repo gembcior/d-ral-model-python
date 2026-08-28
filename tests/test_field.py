@@ -28,8 +28,18 @@ from regs.alfa import AlfaGroup
 from regs.delta_x import DeltaXGroup
 from regs.echo_x import EchoXGroup
 
+import dral.model as dral
+
 
 class TestField:
+    def test_field_description_default_is_empty(self):
+        field = dral.Field("dp", 0, 1)
+        assert field.description == ""
+
+    def test_field_description_passthrough(self):
+        field = dral.Field("dp", 0, 1, description="DP flag")
+        assert field.description == "DP flag"
+
     def test_field_value_set_get_1(self):
         alfa = AlfaGroup()
 

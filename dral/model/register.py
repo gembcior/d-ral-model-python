@@ -40,6 +40,7 @@ class Register:
         self._name: str = ""
         self._address: int = 0
         self._access: AccessType = AccessType.ReadWrite
+        self._description: str = ""
         self._value: int = 0
         self._fields: tuple[Field, ...] = self._get_all_fields()
 
@@ -75,6 +76,10 @@ class Register:
     @property
     def access(self) -> AccessType:
         return self._access
+
+    @property
+    def description(self) -> str:
+        return self._description
 
     @property
     def value(self) -> int:
@@ -121,7 +126,7 @@ def _deepcopy(self: RegisterInstanceType, memo: dict[int, Any]) -> RegisterInsta
     return instance
 
 
-def _setup_init(cls: RegisterType, name: str, address: int, access: AccessType) -> RegisterType:
+def _setup_init(cls: RegisterType, name: str, address: int, access: AccessType, description: str) -> RegisterType:
     init = getattr(cls, "__init__", None)
     fields = getmembers(cls, lambda x: isinstance(x, Field))
 
@@ -131,6 +136,7 @@ def _setup_init(cls: RegisterType, name: str, address: int, access: AccessType) 
         self._name = name  # type: ignore[attr-defined]
         self._address = address  # type: ignore[attr-defined]
         self._access = access  # type: ignore[attr-defined]
+        self._description = description  # type: ignore[attr-defined]
         for attr, value in fields:
             setattr(self, attr, deepcopy(value))
 
@@ -143,11 +149,11 @@ def _setup_methods(cls: RegisterType) -> RegisterType:
     return cls
 
 
-def register(name: str, address: int, access: AccessType = AccessType.ReadWrite) -> Callable[[RegisterType], RegisterType]:
+def register(name: str, address: int, access: AccessType = AccessType.ReadWrite, description: str = "") -> Callable[[RegisterType], RegisterType]:
     def decorator(cls: RegisterType) -> RegisterType:
         cls = _setup_methods(cls)
         cls = _setup_fields(cls)
-        cls = _setup_init(cls, name, address, access)
+        cls = _setup_init(cls, name, address, access, description)
 
         return cls
 

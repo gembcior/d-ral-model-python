@@ -28,12 +28,13 @@ from __future__ import annotations
 
 
 class Field:
-    def __init__(self, name: str, position: int, width: int) -> None:
+    def __init__(self, name: str, position: int, width: int, description: str = "") -> None:
         self._name = name
         self._position = position
         self._width = width
         self._mask = (1 << width) - 1
         self._value = 0
+        self._description = description
 
     def __str__(self) -> str:
         return self._name
@@ -41,6 +42,10 @@ class Field:
     @property
     def name(self) -> str:
         return self._name
+
+    @property
+    def description(self) -> str:
+        return self._description
 
     @property
     def position(self) -> int:

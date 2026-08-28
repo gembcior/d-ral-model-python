@@ -44,6 +44,7 @@ class Group:
         self._offset: list[int] = []
         self._size: int = 1
         self._index: int = 0
+        self._description: str = ""
 
     def __str__(self) -> str:
         return self._name
@@ -78,6 +79,10 @@ class Group:
     def offset(self) -> int:
         return self._offset[self._index]
 
+    @property
+    def description(self) -> str:
+        return self._description
+
 
 def _setup_children(cls: GroupType, size: int, children_type: type) -> GroupType:
     children = {attr: value for attr, value in cls.__dict__.items() if isinstance(value, children_type)}
@@ -106,7 +111,9 @@ def _setup_groups(cls: GroupType, size: int) -> GroupType:
     return _setup_children(cls, size, Group)
 
 
-def _setup_init(cls: GroupType, name: str, address: int, offset: list[int], size: int) -> GroupType:
+def _setup_init(  # noqa: PLR0913
+    cls: GroupType, name: str, address: int, offset: list[int], size: int, description: str
+) -> GroupType:
     init = getattr(cls, "__init__", None)
 
     registers = getmembers(cls, lambda x: isinstance(x, list | tuple) and all(isinstance(y, Register) for y in x))
@@ -118,6 +125,7 @@ def _setup_init(cls: GroupType, name: str, address: int, offset: list[int], size
         self._name = name  # type: ignore[attr-defined]
         self._offset = offset  # type: ignore[attr-defined]
         self._size = size  # type: ignore[attr-defined]
+        self._description = description  # type: ignore[attr-defined]
         for attr, value in registers:
             setattr(self, attr, tuple(deepcopy(x) for x in value))
         for attr, value in groups:
@@ -165,7 +173,7 @@ def _setup_methods(cls: GroupType) -> GroupType:
     return cls
 
 
-def group(name: str, address: int, offset: list[int] | int, size: int = 1) -> Callable[[GroupType], GroupType]:
+def group(name: str, address: int, offset: list[int] | int, size: int = 1, description: str = "") -> Callable[[GroupType], GroupType]:
     if isinstance(offset, list):
         size = len(offset)
     else:
@@ -178,7 +186,7 @@ def group(name: str, address: int, offset: list[int] | int, size: int = 1) -> Ca
         cls = _setup_methods(cls)
         cls = _setup_registers(cls, size)
         cls = _setup_groups(cls, size)
-        cls = _setup_init(cls, name, address, offset, size)
+        cls = _setup_init(cls, name, address, offset, size, description)
 
         return cls
 
